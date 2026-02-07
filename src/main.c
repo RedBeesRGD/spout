@@ -12,11 +12,10 @@
 static void *xfb = NULL;
 static GXRModeObj *rmode = NULL;
 
-int get_console_type( void ) {
-	if(IS_CAFE) 
-		return ConsoleType_WiiU;
-	else
-		return ConsoleType_Wii;
+// from swiss
+static bool is_gamecube( void ) {
+	u32 pvr = mfpvr();
+	return ((pvr >> 16) & 0xFFFF) == 0x0008 && ((pvr >> 12) & 0xF) != 0x7;
 }
 
 int get_cpu_type(u32 pvr) {
@@ -61,6 +60,9 @@ int get_cpu_type(u32 pvr) {
 }
 
 int get_chipset_type( void ) {
+	if(is_gamecube()) {
+		}
+
 	if (!IS_CAFE) {
 		switch(HW_CHIPREVID) {
 			case HOLLYWOOD_ES1_0:
@@ -80,8 +82,42 @@ int get_chipset_type( void ) {
 			default:
 				return ChipsetType_Unknown;
 		}
+	} else {
+		switch(LT_CHIPREVID) {
+			case LATTE_A11:
+				return ChipsetType_LatteA11;
+			case LATTE_A12:
+				return ChipsetType_LatteA12;
+			case LATTE_A2X:
+				return ChipsetType_LatteA2X;
+			case LATTE_A3X:
+				return ChipsetType_LatteA3X;
+			case LATTE_A4X:
+				return ChipsetType_LatteA4X;
+			case LATTE_A5X:
+				return ChipsetType_LatteA5X;
+			case LATTE_B1X:
+				return ChipsetType_LatteB1X;
+			case LATTE_B1X70:
+				return ChipsetType_LatteB1X70;
+			}
 	}
+			
 	return ChipsetType_Unknown;
+}
+
+int get_console_type( void ) {
+	int fd = IOS_Open("/dev/dolphin", 1);
+	if(fd >= 0) {
+		IOS_Close(fd);
+		return ConsoleType_Dolphin;
+	}
+	IOS_Close(fd);
+	
+	if(IS_CAFE)
+		return ConsoleType_WiiU;
+	else
+		return ConsoleType_Wii;
 }
 
 void get_console_info(struct console_info* c_ptr) {
@@ -90,16 +126,16 @@ void get_console_info(struct console_info* c_ptr) {
 	// Strings are permuted for special cases
 	// Strings are copied into struct
 	u32 pvr = mfpvr();
-	int ctype_index = get_console_type();
 	int cputype_index = get_cpu_type(pvr);
 	int chipset_type_index = get_chipset_type();
+	int ctype_index = get_console_type();
 	char cpu_type[64];
-	char console_type[64];
 	char chipset_type[64];
+	char console_type[64];
 	
-	strcpy(console_type, console_type_str[ctype_index]);
 	strcpy(cpu_type, cpu_type_str[cputype_index]);
 	strcpy(chipset_type, chipset_type_str[chipset_type_index]);
+	strcpy(console_type, console_type_str[ctype_index]);
 	
 	if(cputype_index == CpuType_Unknown) {
 		if((pvr & PVR_BROADWAY_BASE) == 0x87000) {
@@ -108,9 +144,9 @@ void get_console_info(struct console_info* c_ptr) {
 		}
 	}
 	
-	strcpy(c_ptr->console_type, console_type);
 	strcpy(c_ptr->cpu_type, cpu_type);
 	strcpy(c_ptr->chipset_type, chipset_type);
+	strcpy(c_ptr->console_type, console_type);
 }
 
 void libogc_init( void ) {

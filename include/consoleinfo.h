@@ -1,51 +1,66 @@
 #define IS_CAFE (*(vu16*)0xcd8005a0 == 0xCAFE)
 
-#define HW_CHIPREVID (*(vu32*)0xcd800214)
-#define LT_CHIPREVID (*(vu8*)0xcd8005a3)
+#define HW_CHIPREVID 	(*(vu32*)0xcd800214)
+#define LT_CHIPREVID 	(*(vu8*)0xcd8005a3)
 
-#define PVR_LONESTAR_DD20   0x00080200 // 750L
-#define PVR_LONESTAR_DD22   0x00088202
+#define PVR_LONESTAR_DD20	0x00080200 // 750L
+#define PVR_LONESTAR_DD22	0x00088202
 
-#define PVR_GEKKO_DD10      0x70000100
-#define PVR_GEKKO_DD20      0x00080100 // Also Lonestar DD1 apparently
-#define PVR_GEKKO_DD23      0x00083213
-#define PVR_GEKKO_DD23a     0x00083203
-#define PVR_GEKKO_DD23b     PVR_GEKKO_DD23 // why??
-#define PVR_GEKKO_DD23e     PVR_GEKKO_DD23
-#define PVR_GEKKO_DD23ei    PVR_GEKKO_DD23a 
-#define PVR_GEKKO_DD24      0x00083204
-#define PVR_GEKKO_DD24e     0x00083214
-#define PVR_GEKKO_DD40      0x00083410 
+#define PVR_GEKKO_DD10		0x70000100
+#define PVR_GEKKO_DD20		0x00080100 // Also Lonestar DD1 apparently
+#define PVR_GEKKO_DD23		0x00083213
+#define PVR_GEKKO_DD23a		0x00083203
+#define PVR_GEKKO_DD23b		PVR_GEKKO_DD23 // why??
+#define PVR_GEKKO_DD23e		PVR_GEKKO_DD23
+#define PVR_GEKKO_DD23ei	PVR_GEKKO_DD23a 
+#define PVR_GEKKO_DD24		0x00083204
+#define PVR_GEKKO_DD24e		0x00083214
+#define PVR_GEKKO_DD40		0x00083410 
 // 2.3=2.3b=2.3e, 2.3a=2.3ei
 
-#define PVR_BROADWAY_BASE   0x00087000
-#define PVR_BROADWAY_DD10   0x00087100
-#define PVR_BROADWAY_DD101  0x00087110
-#define PVR_BROADWAY_DD12   0x00087102
-#define PVR_BROADWAY_DD12i  0x00087112
-#define PVR_BROADWAY_DD13   0x00087103
-#define PVR_BROADWAY_DD13i  0x00087113
-#define PVR_BROADWAY_DD20   0x00087200
+#define PVR_BROADWAY_BASE	0x00087000
+#define PVR_BROADWAY_DD10	0x00087100
+#define PVR_BROADWAY_DD101	0x00087110
+#define PVR_BROADWAY_DD12	0x00087102
+#define PVR_BROADWAY_DD12i	0x00087112
+#define PVR_BROADWAY_DD13	0x00087103
+#define PVR_BROADWAY_DD13i	0x00087113
+#define PVR_BROADWAY_DD20	0x00087200
 
-#define  HOLLYWOOD_ES1_0      0x00000000      // ES1.00
-#define  HOLLYWOOD_ES1_1      0x00000001      // ES1.10
-#define  HOLLYWOOD_ES1_2      0x00000002      // ES1.21
-#define  HOLLYWOOD_ES2_0      0x00000010      // ES2.01
-#define  HOLLYWOOD_ES2_1      0x00000011      // ES2.11
-#define  HOLLYWOOD_ES3_0      0x00000020      // ES3.0
-#define  HOLLYWOOD_ES3_1      0x00000021      // ES3.1
+
+
+#define HOLLYWOOD_ES1_0		0x00000000      // ES1.00
+#define HOLLYWOOD_ES1_1		0x00000001      // ES1.10
+#define HOLLYWOOD_ES1_2		0x00000002      // ES1.21
+#define HOLLYWOOD_ES2_0		0x00000010      // ES2.01
+#define HOLLYWOOD_ES2_1		0x00000011      // ES2.11
+#define HOLLYWOOD_ES3_0		0x00000020      // ES3.0
+#define HOLLYWOOD_ES3_1		0x00000021      // ES3.1
+
+#define LATTE_A11		0x10
+#define LATTE_A12		0x18
+#define LATTE_A2X		0x21
+#define LATTE_A3X		0x31
+#define LATTE_A4X		0x40
+#define LATTE_A5X		0x50
+#define LATTE_B1X		0x60
+#define LATTE_B1X70		0x70
 
 typedef enum {
 	ConsoleType_GameCube = 0,
 	ConsoleType_Wii,
 	ConsoleType_WiiU,
+	ConsoleType_Dolphin,
+	ConsoleType_Unknown,
 	ConsoleType_Count
 } ConsoleType;
 
 const char *console_type_str[ConsoleType_Count] = {
 	"Nintendo GameCube",
 	"Wii",
-	"Wii U"
+	"Wii U",
+	"Dolphin",
+	"Unknown"
 };
 
 typedef enum {
@@ -102,6 +117,14 @@ typedef enum {
 	ChipsetType_HollywoodES21,
 	ChipsetType_HollywoodES30, // bollywood
 	ChipsetType_HollywoodES31,
+	ChipsetType_LatteA11,
+	ChipsetType_LatteA12,
+	ChipsetType_LatteA2X,
+	ChipsetType_LatteA3X,
+	ChipsetType_LatteA4X,
+	ChipsetType_LatteA5X,
+	ChipsetType_LatteB1X,
+	ChipsetType_LatteB1X70,
 	ChipsetType_Unknown,
 	ChipsetType_Count
 } ChipsetType;
@@ -117,6 +140,14 @@ const char *chipset_type_str[ChipsetType_Count] = {
 	"Hollywood ES2.1",
 	"Hollywood ES3.0 (Bollywood ES)",
 	"Hollywood ES3.1 (Bollywood)",
+	"Latte A11",
+	"Latte A12",
+	"Latte A2X",
+	"Latte A3X",
+	"Latte A4X",
+	"Latte A5X",
+	"Latte B1X",
+	"Latte B1X (late)",
 	"Unknown"
 };
 
