@@ -100,14 +100,12 @@ int get_chipset_type( void ) {
 }
 
 int get_console_type( void ) {
-	#ifndef GAMECUBE_BUILD
 	int fd = IOS_Open("/dev/dolphin", 1);
 	if(fd >= 0) {
 		IOS_Close(fd);
 		return ConsoleType_Dolphin;
 	}
 	IOS_Close(fd);
-	#endif
 	
 	if(get_cpu_type() >= CpuType_LonestarDD20 && get_cpu_type() <= CpuType_GekkoDD40)
 		return ConsoleType_GameCube;
@@ -149,7 +147,6 @@ void get_console_info(struct console_info* c_ptr) {
 	strcpy(c_ptr->console_type, console_type);
 }
 
-#ifndef GAMECUBE_BUILD
 void libogc_init( void ) {
 	//---------------------------------------------------------------------------------
 
@@ -192,37 +189,9 @@ void libogc_init( void ) {
 	// e.g. printf ("\x1b[%d;%dH", row, column );
 	printf("\x1b[2;0H");
 }
-#else
-void * Initialise() {
-
-	void *framebuffer;
-
-	VIDEO_Init();
-	PAD_Init();
-
-	rmode = VIDEO_GetPreferredMode(NULL);
-
-	framebuffer = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
-	console_init(framebuffer,20,20,rmode->fbWidth,rmode->xfbHeight,rmode->fbWidth*VI_DISPLAY_PIX_SZ);
-
-	VIDEO_Configure(rmode);
-	VIDEO_SetNextFramebuffer(framebuffer);
-	VIDEO_SetBlack(FALSE);
-	VIDEO_Flush();
-	VIDEO_WaitVSync();
-	if(rmode->viTVMode&VI_NON_INTERLACE) VIDEO_WaitVSync();
-
-	return framebuffer;
-
-}
-#endif
 
 int main(int argc, char **argv) {
-	#ifndef GAMECUBE_BUILD
 	libogc_init();
-	#else
-	xfb = Initialise();
-	#endif
 	
 	pvr = mfpvr();
 	struct console_info c = {0};
@@ -234,7 +203,6 @@ int main(int argc, char **argv) {
 	printf("CPU: %s\n", c.cpu_type);
 	printf("Chipset: %s\n", c.chipset_type);
 
-	#ifndef GAMECUBE_BUILD
 	while(SYS_MainLoop()) {
 
 		// Call WPAD_ScanPads each loop, this reads the latest controller states
@@ -250,14 +218,6 @@ int main(int argc, char **argv) {
 		// Wait for the next frame
 		VIDEO_WaitVSync();
 	}
-	#else
-	while(SYS_MainLoop()) {
-		PAD_ScanPads();
-		u32 pressed = PAD_ButtonsDown(0);
-		if(pressed & PAD_BUTTON_A) exit(0);
-		VIDEO_WaitVSync();
-	}
-	#endif
 
 	return 0;
 }

@@ -109,6 +109,9 @@ clean:
 run:
 	wiiload $(TARGET).dol
 
+gamecube:
+	export GAMECUBE_BUILD=1
+
 
 #---------------------------------------------------------------------------------
 else
