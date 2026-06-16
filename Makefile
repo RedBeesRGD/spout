@@ -7,7 +7,11 @@ ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>devkitPPC")
 endif
 
+ifdef GAMECUBE_BUILD
+include $(DEVKITPPC)/gamecube_rules
+else
 include $(DEVKITPPC)/wii_rules
+endif
 
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
@@ -26,6 +30,9 @@ INCLUDES	:=	include
 #---------------------------------------------------------------------------------
 
 CFLAGS	= -g -O2 -Wall $(MACHDEP) $(INCLUDE)
+ifdef GAMECUBE_BUILD
+CFLAGS	+= -DGAMECUBE_BUILD
+endif
 CXXFLAGS	=	$(CFLAGS)
 
 LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
@@ -33,7 +40,11 @@ LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
+ifdef GAMECUBE_BUILD
+LIBS	:=	-logc -lm
+else
 LIBS	:=	-lwiiuse -lbte -logc -lm
+endif
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -93,7 +104,7 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES), -iquote $(CURDIR)/$(dir)) \
 export LIBPATHS	:= -L$(LIBOGC_LIB) $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
-.PHONY: $(BUILD) clean
+.PHONY: $(BUILD) clean run gamecube
 
 #---------------------------------------------------------------------------------
 $(BUILD):
@@ -110,7 +121,7 @@ run:
 	wiiload $(TARGET).dol
 
 gamecube:
-	export GAMECUBE_BUILD=1
+	@$(MAKE) GAMECUBE_BUILD=1
 
 
 #---------------------------------------------------------------------------------
