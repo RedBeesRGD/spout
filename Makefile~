@@ -119,9 +119,7 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr build build_gamecube
-	@rm -f $(notdir $(CURDIR)).elf $(notdir $(CURDIR)).dol
-	@rm -f spout_gamecube.elf spout_gamecube.dol
+	@rm -fr $(BUILD) $(OUTPUT).elf $(OUTPUT).dol
 
 #---------------------------------------------------------------------------------
 run:
