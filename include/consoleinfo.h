@@ -27,6 +27,8 @@
 #define PVR_BROADWAY_DD13i	0x00087113
 #define PVR_BROADWAY_DD20	0x00087200
 
+#define PVR_ESPRESSO_ES	0x70010200
+#define PVR_ESPRESSO	0x70010201
 
 
 #define HOLLYWOOD_ES1_0		0x00000000      // ES1.00
@@ -50,7 +52,8 @@ typedef enum {
 	ConsoleType_GameCube = 0,
 	ConsoleType_Wii,
 	ConsoleType_WiiU,
-	ConsoleType_Dolphin,
+	ConsoleType_DolphinGC,
+	ConsoleType_DolphinWii,
 	ConsoleType_Unknown,
 	ConsoleType_Count
 } ConsoleType;
@@ -59,7 +62,8 @@ const char *console_type_str[ConsoleType_Count] = {
 	"Nintendo GameCube",
 	"Wii",
 	"Wii U",
-	"Dolphin",
+	"Dolphin (GameCube mode)",
+	"Dolphin (Wii mode)",
 	"Unknown"
 };
 
@@ -81,6 +85,7 @@ typedef enum {
 	CpuType_BroadwayDD13i,
 	CpuType_BroadwayDD20,
 	CpuType_Espresso,
+	CpuType_EspressoEs,
 	CpuType_Unknown,
 	CpuType_Count
 } CpuType;
@@ -101,8 +106,9 @@ const char *cpu_type_str[CpuType_Count] = {
 	"Broadway DD1.2i",
 	"Broadway DD1.3",
 	"Broadway DD1.3i",
-	"Broadway DD2.0", // Broadway-1
+	"Broadway DD2.0 (Broadway-1)", // Broadway-1
 	"Espresso",
+	"Espresso (engineering sample)",
 	"Unknown"
 };
 
@@ -155,4 +161,5 @@ struct console_info {
 	char console_type[64];
 	char cpu_type[64];
 	char chipset_type[64];
+	char ram_info[64];
 };

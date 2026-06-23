@@ -109,7 +109,7 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES), -iquote $(CURDIR)/$(dir)) \
 export LIBPATHS	:= -L$(LIBOGC_LIB) $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
-.PHONY: $(BUILD) clean run gamecube
+.PHONY: $(BUILD) clean run gamecube all
 
 #---------------------------------------------------------------------------------
 $(BUILD):
@@ -130,6 +130,9 @@ run:
 gamecube:
 	@$(MAKE) GAMECUBE_BUILD=1
 
+all:
+	@$(MAKE) --no-print-directory
+	@$(MAKE) --no-print-directory GAMECUBE_BUILD=1
 
 #---------------------------------------------------------------------------------
 else

@@ -5,14 +5,13 @@
 #include <ogc/machine/processor.h>
 #include <wiiuse/wpad.h>
 #include "consoleinfo.h"
-
-#define VERSION_MAJOR 0
-#define VERSION_MINOR 1
+#include "utils.h"
 
 static void *xfb = NULL;
 static GXRModeObj *rmode = NULL;
 
 int pvr = 0;
+int ctype_index = 0;
 
 int get_cpu_type( void ) {
 	switch(pvr) {
@@ -50,6 +49,12 @@ int get_cpu_type( void ) {
 			return CpuType_BroadwayDD13i;
 		case PVR_BROADWAY_DD20:
 			return CpuType_BroadwayDD20;
+		
+		case PVR_ESPRESSO_ES:
+			return CpuType_EspressoEs;
+		case PVR_ESPRESSO:
+			return CpuType_Espresso;
+	
 		default:
 			return CpuType_Unknown;
 		}
@@ -99,22 +104,42 @@ int get_chipset_type( void ) {
 	return ChipsetType_Unknown;
 }
 
+void get_ram_info(char *buf) {
+	char substr[64];
+	int dolphin = (ctype_index == ConsoleType_DolphinGC || ctype_index == ConsoleType_DolphinWii);
+	strcpy(buf, "MEM1: ");
+	ram_to_units(get_mem1_size(dolphin), substr, sizeof(substr));
+	strcat(buf, substr);
+	if(get_mem2_size(dolphin)) {
+		strcat(buf, "\n        MEM2: ");
+		ram_to_units(get_mem2_size(dolphin), substr, sizeof(substr));
+		strcat(buf, substr);
+	}
+}
+
 int get_console_type( void ) {
 	#ifndef GAMECUBE_BUILD
 	int fd = IOS_Open("/dev/dolphin", 1);
 	if(fd >= 0) {
 		IOS_Close(fd);
-		return ConsoleType_Dolphin;
+		return ConsoleType_DolphinWii;
 	}
 	IOS_Close(fd);
+	#else
+	//thanks Raiiri
+       	// If the reload stub has zero at its entry point then this is dolphin
+	// won't work if 'enable cheats' is checked
+	if (*(u32 *)0x80001800 == 0 && *(u32 *)0x80001804 == 'STUB') {
+		return ConsoleType_DolphinGC;
+	}
 	#endif
-	
-	if(get_cpu_type() >= CpuType_LonestarDD20 && get_cpu_type() <= CpuType_GekkoDD40)
-		return ConsoleType_GameCube;
+
+	if(get_cpu_type() >= CpuType_BroadwayDD10 && get_cpu_type() <= CpuType_BroadwayDD20)
+		return ConsoleType_Wii;
 	if(IS_CAFE)
 		return ConsoleType_WiiU;
 	else
-		return ConsoleType_Wii;
+		return ConsoleType_GameCube;
 }
 
 void get_console_info(struct console_info* c_ptr) {
@@ -124,140 +149,90 @@ void get_console_info(struct console_info* c_ptr) {
 	// Strings are copied into struct
 	int cputype_index = get_cpu_type();
 	int chipset_type_index = get_chipset_type();
-	int ctype_index = get_console_type();
+	ctype_index = get_console_type();
 	char cpu_type[64];
 	char chipset_type[64];
 	char console_type[64];
+	char ram_info[64];
+	get_ram_info(ram_info);
+
 	u32 flipperId = ((vu32*)0xCC003000)[11];
 
 	strcpy(cpu_type, cpu_type_str[cputype_index]);
 	strcpy(chipset_type, chipset_type_str[chipset_type_index]);
 	strcpy(console_type, console_type_str[ctype_index]);
-	
+
 	if(cputype_index == CpuType_Unknown) {
 		if((pvr & PVR_BROADWAY_BASE) == 0x87000) {
 			sprintf(cpu_type, "maybe Broadway DD%d.%d", 
 			((pvr & 0x00000f00) >> 8), (pvr & 0x0000000f));
 		}
+		else {
+			sprintf(cpu_type, "Unknown (PVR %08X)", pvr);
+		}
 	}
-	if(ctype_index == ConsoleType_GameCube) {
+	if(ctype_index == ConsoleType_GameCube || ctype_index == ConsoleType_DolphinGC) {
 		sprintf(chipset_type, "Flipper rev %c", 'A' + (flipperId >> 28));
 	}
-	
+
+	strcpy(c_ptr->ram_info, ram_info);
 	strcpy(c_ptr->cpu_type, cpu_type);
 	strcpy(c_ptr->chipset_type, chipset_type);
 	strcpy(c_ptr->console_type, console_type);
 }
 
-#ifndef GAMECUBE_BUILD
 void libogc_init( void ) {
-	//---------------------------------------------------------------------------------
 
-	// Initialise the video system
 	VIDEO_Init();
 
-	// This function initialises the attached controllers
+	#ifndef GAMECUBE_BUILD
 	WPAD_Init();
-
-	// Obtain the preferred video mode from the system
-	// This will correspond to the settings in the Wii menu
+	#endif
+	PAD_Init();
 	rmode = VIDEO_GetPreferredMode(NULL);
-
-	// Allocate memory for the display in the uncached region
 	xfb = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
-
-	// Initialise the console, required for printf
 	console_init(xfb,20,20,rmode->fbWidth,rmode->xfbHeight,rmode->fbWidth*VI_DISPLAY_PIX_SZ);
-
-	// Set up the video registers with the chosen mode
 	VIDEO_Configure(rmode);
-
-	// Tell the video hardware where our display memory is
 	VIDEO_SetNextFramebuffer(xfb);
-
-	// Make the display visible
 	VIDEO_SetBlack(false);
-
-	// Flush the video register changes to the hardware
 	VIDEO_Flush();
-
-	// Wait for Video setup to complete
 	VIDEO_WaitVSync();
 	if(rmode->viTVMode&VI_NON_INTERLACE) VIDEO_WaitVSync();
 
-
-	// The console understands VT terminal escape codes
-	// This positions the cursor on row 2, column 0
-	// we can use variables for this with format codes too
-	// e.g. printf ("\x1b[%d;%dH", row, column );
 	printf("\x1b[2;0H");
 }
-#else
-void * Initialise() {
-
-	void *framebuffer;
-
-	VIDEO_Init();
-	PAD_Init();
-
-	rmode = VIDEO_GetPreferredMode(NULL);
-
-	framebuffer = MEM_K0_TO_K1(SYS_AllocateFramebuffer(rmode));
-	console_init(framebuffer,20,20,rmode->fbWidth,rmode->xfbHeight,rmode->fbWidth*VI_DISPLAY_PIX_SZ);
-
-	VIDEO_Configure(rmode);
-	VIDEO_SetNextFramebuffer(framebuffer);
-	VIDEO_SetBlack(FALSE);
-	VIDEO_Flush();
-	VIDEO_WaitVSync();
-	if(rmode->viTVMode&VI_NON_INTERLACE) VIDEO_WaitVSync();
-
-	return framebuffer;
-
-}
-#endif
 
 int main(int argc, char **argv) {
-	#ifndef GAMECUBE_BUILD
 	libogc_init();
-	#else
-	xfb = Initialise();
-	#endif
 	
 	pvr = mfpvr();
 	struct console_info c = {0};
-
 	get_console_info(&c);
 	 
-	printf("Spout v%i.%i by RedBees - raregamingdump.ca\n", VERSION_MAJOR, VERSION_MINOR);
+	printf("\e[0;36mSpout\e[0;37m");
+	#ifdef GAMECUBE_BUILD
+	printf(" - GameCube Version");
+	#else
+	printf(" - Wii Version");
+	#endif
+
+	printf("\n\n");
 	printf("Console Type: %s\n", c.console_type);
 	printf("CPU: %s\n", c.cpu_type);
 	printf("Chipset: %s\n", c.chipset_type);
+	printf("RAM info:\n        %s\n", c.ram_info);
 
-	#ifndef GAMECUBE_BUILD
 	while(SYS_MainLoop()) {
-
-		// Call WPAD_ScanPads each loop, this reads the latest controller states
-		WPAD_ScanPads();
-
-		// WPAD_ButtonsDown tells us which buttons were pressed in this loop
-		// this is a "one shot" state which will not fire again until the button has been released
-		u32 pressed = WPAD_ButtonsDown(0);
-
-		// We return to the launcher application via exit
-		if ( pressed & WPAD_BUTTON_HOME ) exit(0);
-
-		// Wait for the next frame
-		VIDEO_WaitVSync();
-	}
-	#else
-	while(SYS_MainLoop()) {
+		#ifndef GAMECUBE_BUILD
+			WPAD_ScanPads();
+			u32 pressed_w = WPAD_ButtonsDown(0);
+			if ( pressed_w & WPAD_BUTTON_HOME ) exit(0);
+		#endif
 		PAD_ScanPads();
 		u32 pressed = PAD_ButtonsDown(0);
 		if(pressed & PAD_BUTTON_A) exit(0);
 		VIDEO_WaitVSync();
 	}
-	#endif
 
 	return 0;
 }
