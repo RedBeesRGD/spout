@@ -15,15 +15,15 @@ int ctype_index = 0;
 
 int get_cpu_type( void ) {
 	switch(pvr) {
+		case PVR_LONESTAR_DD1:
+			return CpuType_GekkoDD2orLonestar;
 		case PVR_LONESTAR_DD20:
 			return CpuType_LonestarDD20;
 		case PVR_LONESTAR_DD22:
 			return CpuType_LonestarDD22;
 
 		case PVR_GEKKO_DD10:
-			return CpuType_GekkoDD10;
-		case PVR_GEKKO_DD20: // or lonestar dd1
-			return CpuType_GekkoDD20;
+			return CpuType_GekkoDD1or2;
 		case PVR_GEKKO_DD23: // or b or e
 			return CpuType_GekkoDD23;
 		case PVR_GEKKO_DD23a: // or ei
@@ -172,7 +172,11 @@ void get_console_info(struct console_info* c_ptr) {
 		}
 	}
 	if(ctype_index == ConsoleType_GameCube || ctype_index == ConsoleType_DolphinGC) {
-		sprintf(chipset_type, "Flipper rev %c", 'A' + (flipperId >> 28));
+		char flipper_rev_letter = 'A' + (flipperId >> 28);
+		if(flipperId == 0x53200B1) {
+			flipper_rev_letter = 'T';
+		}
+		sprintf(chipset_type, "Flipper rev %c", flipper_rev_letter);
 	}
 
 	strcpy(c_ptr->ram_info, ram_info);

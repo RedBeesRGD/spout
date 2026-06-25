@@ -8,6 +8,7 @@
 
 #define PVR_GEKKO_DD10		0x70000100
 #define PVR_GEKKO_DD20		0x00080100 // Also Lonestar DD1 apparently
+#define PVR_LONESTAR_DD1	PVR_GEKKO_DD20
 #define PVR_GEKKO_DD23		0x00083213
 #define PVR_GEKKO_DD23a		0x00083203
 #define PVR_GEKKO_DD23b		PVR_GEKKO_DD23 // why??
@@ -70,8 +71,8 @@ const char *console_type_str[ConsoleType_Count] = {
 typedef enum {
 	CpuType_LonestarDD20 = 0,
 	CpuType_LonestarDD22,
-	CpuType_GekkoDD10,
-	CpuType_GekkoDD20,
+	CpuType_GekkoDD1or2,
+	CpuType_GekkoDD2orLonestar,
 	CpuType_GekkoDD23,
 	CpuType_GekkoDD23a,
 	CpuType_GekkoDD24,
@@ -93,7 +94,7 @@ typedef enum {
 const char *cpu_type_str[CpuType_Count] = {
 	"PowerPC 750L DD2.0 (Lonestar)",
 	"PowerPC 750L DD2.2 (Lonestar)",
-	"Gekko DD1.0",
+	"Gekko DD1.0 or 2.0",
 	"Gekko DD2.0 (or Lonestar DD1.0)",
 	"Gekko DD2.3 (or 2.3b/e)",
 	"Gekko DD2.3a (or 2.3ei)",
@@ -116,6 +117,7 @@ typedef enum {
 	ChipsetType_FlipperRevA = 0,
 	ChipsetType_FlipperRevB,
 	ChipsetType_FlipperRevC,
+	ChipsetType_FlipperRevT,
 	ChipsetType_HollywoodES10,
 	ChipsetType_HollywoodES11,
 	ChipsetType_HollywoodES12,
@@ -139,6 +141,7 @@ const char *chipset_type_str[ChipsetType_Count] = {
 	"Flipper (rev A)",
 	"Flipper (rev B)",
 	"Flipper (rev C)",
+	"Flipper (rev T)",
 	"Hollywood ES1.0",
 	"Hollywood ES1.1",
 	"Hollywood ES1.21",

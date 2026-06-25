@@ -8,17 +8,18 @@
 
 
 u32 get_mem1_size(int dolphin) {
-    if(dolphin) {
-        return *(u32*)(0x80000028);
-    }
-    switch (((vu16 *)0xCC004000)[20] & 7) {
+    
+    u32 mem_cfg = ((vu16 *)0xCC004000)[20] & 7;
+    switch (mem_cfg) { //  0xCC004028
         case 0:
+	    if(dolphin) return *(u32*)(0x80000028);
             return 0x1000000;
             break;
         case 1: case 4:
             return 0x2000000;
             break;
         case 2: case 6:
+	    if(dolphin) return *(u32*)(0x80000028);
             return 0x1800000;
             break;
         case 3: case 7:
@@ -27,6 +28,9 @@ u32 get_mem1_size(int dolphin) {
         case 5:
             return 0x4000000;
             break;
+	default:
+	    return *(u32*)(0x80000028);
+	    break;
     }
     return 0;
 }
@@ -55,9 +59,9 @@ u32 get_mem2_size(int dolphin) {
             RealDdrSize = 0x10000000;
         }
     }
-    if(dolphin && RealDdrSize < 0x4000000) {
-	    return 0x4000000;
-	}
+ //   if(dolphin && RealDdrSize < 0x4000000) {
+//	    return 0x4000000;
+//	}
 
     return RealDdrSize;
     #endif
