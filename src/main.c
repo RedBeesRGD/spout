@@ -6,6 +6,7 @@
 #include <wiiuse/wpad.h>
 #include "consoleinfo.h"
 #include "utils.h"
+#include "haxx.h"
 
 static void *xfb = NULL;
 static GXRModeObj *rmode = NULL;
@@ -208,11 +209,24 @@ void libogc_init( void ) {
 
 int main(int argc, char **argv) {
 	libogc_init();
-	
+	#ifndef GAMECUBE_BUILD
+	Haxx_GetBusAccess();
+	#endif
+
 	pvr = mfpvr();
 	struct console_info c = {0};
 	get_console_info(&c);
-	 
+
+	CON_EnableGecko(1, true);
+	u16 mem_colsel = read16(0xcd8b4210);
+       	u16 mem_rowsel = read16(0xcd8b4212); //& 0x7;
+	u16 mem_banksel = read16(0xcd8b4214);
+	u16 mem_ranksel = read16(0xcd8b4216);// & 0x7;
+	u16 mem_colmsk = read16(0xcd8b4218);
+	u16 mem_rowmsk = read16(0xcd8b421a);
+	u16 mem_bankmsk = read16(0xcd8b421c);
+//	u16 mem_rowmsk = read16(0xcd8b421a) & 0x3fff;
+	printf("col sel: %08X\nrow sel: %08X\nbank sel: %08X\nrank sel: %08X\ncol msk: %08X\nrow mask: %08X\nbank msk: %08X\n", mem_colsel, mem_rowsel, mem_banksel, mem_ranksel, mem_colmsk, mem_rowmsk, mem_bankmsk);
 	printf("\e[0;36mSpout\e[0;37m");
 	#ifdef GAMECUBE_BUILD
 	printf(" - GameCube Version");

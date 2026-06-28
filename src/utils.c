@@ -39,11 +39,11 @@ u32 get_mem2_size(int dolphin) {
     #ifdef GAMECUBE_BUILD
     return 0;
     #else
-    u32 DdrSize = 0;
+   /* u32 DdrSize = 0;
 
     DdrSize = *(u32*)(0x80003120) - 0x90000000;
     u32 RealDdrSize = DdrSize;
-    if ((read32(0xCD800064) == 0xFFFFFFFF) ? 1 : 0) {
+    if ((read32(0xCD800064) == 0xFFFFFFFF) ? 1 : 0) { // AHBPROT check
         // We have full hardware access.
         // Disable DDR memory protection.
         write16(0xCD8B420A, 0);
@@ -59,11 +59,27 @@ u32 get_mem2_size(int dolphin) {
             RealDdrSize = 0x10000000;
         }
     }
- //   if(dolphin && RealDdrSize < 0x4000000) {
-//	    return 0x4000000;
-//	}
 
-    return RealDdrSize;
+    return RealDdrSize;*/
+
+    	if (read32(0xcd800064) != 0xffffffff) return 0; // ahbprot
+//	if (read32(0xcd800214) != read32(0x80003138)) return; // hollywood version
+	if ((read32(0xcd8005a0) >> 16) == 0xcafe)
+		write16(0xcd8b421a, 0x3fff);
+
+	u16 mem_rowsel = read16(0xcd8b4212) & 0x7;
+	u16 mem_ranksel = read16(0xcd8b4216) & 0x7;
+	u16 mem_rowmsk = read16(0xcd8b421a) & 0x3fff;
+
+	u32 mem_size = read32(0x80003118); // mem size dropped by ios
+
+//	if (read16(0xcd8b420c) < (mem_size >> 12) &&
+//		read16(0xcd8b420e) >= (mem_size >> 12))
+//		write16(0xcd8b420e, (mem_size - 1) >> 12);
+
+	if(mem_size) return mem_size;
+	mem_size = 1 << (32 - cntlzw(((0x20000 >> mem_ranksel) & 0x3f000) | ((mem_rowmsk << mem_rowsel) & 0x3ffff)) + 10);
+	return mem_size;
     #endif
 }
 
