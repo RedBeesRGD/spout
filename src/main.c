@@ -3,6 +3,8 @@
 #include <gccore.h>
 #include <string.h>
 #include <ogc/machine/processor.h>
+#include <ogc/ipc.h>
+#include <ogc/system.h>
 #include <wiiuse/wpad.h>
 #include "consoleinfo.h"
 #include "utils.h"
@@ -207,7 +209,7 @@ void libogc_init( void ) {
 	printf("\x1b[2;0H");
 }
 
-int main(int argc, char **argv) {
+int main( void ) {
 	libogc_init();
 	#ifndef GAMECUBE_BUILD
 	Haxx_GetBusAccess();

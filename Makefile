@@ -1,162 +1,45 @@
-#---------------------------------------------------------------------------------
-# Clear the implicit built in rules
-#---------------------------------------------------------------------------------
-.SUFFIXES:
-#---------------------------------------------------------------------------------
-ifeq ($(strip $(DEVKITPPC)),)
+ifeq ($(strip ${DEVKITPPC}),)
 $(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>devkitPPC")
 endif
 
-ifdef GAMECUBE_BUILD
-include $(DEVKITPRO)/libogc2/gamecube_rules
-else
-include $(DEVKITPRO)/libogc2/wii_rules
-endif
+CC=${DEVKITPPC}/bin/powerpc-eabi-gcc
+CFLAGS=-O2 -Wall -Wextra -Iinclude
+LDFLAGS=-DGEKKO -mcpu=750 -meabi -mhard-float
 
-#---------------------------------------------------------------------------------
-# TARGET is the name of the output
-# BUILD is the directory where object files & intermediate files will be placed
-# SOURCES is a list of directories containing source code
-# INCLUDES is a list of directories containing extra header files
-#---------------------------------------------------------------------------------
-ifdef GAMECUBE_BUILD
-TARGET		:=	spout_gamecube
-BUILD		:=	build_gamecube
-else
-TARGET		:=	$(notdir $(CURDIR))
-BUILD		:=	build
-endif
-SOURCES		:=	src
-DATA		:=	data
-INCLUDES	:=	include
+GC_CFLAGS=-I${DEVKITPRO}/libogc2/gamecube/include -DGAMECUBE_BUILD=1
+GC_LDFLAGS=-L${DEVKITPRO}/libogc2/gamecube/lib -logc -lm -mogc
 
-#---------------------------------------------------------------------------------
-# options for code generation
-#---------------------------------------------------------------------------------
+WII_CFLAGS=-I${DEVKITPRO}/libogc2/wii/include
+WII_LDFLAGS=-L${DEVKITPRO}/libogc2/wii/lib -lwiiuse -lbte -logc -lm -mrvl
 
-CFLAGS	= -g -O2 -Wall $(MACHDEP) $(INCLUDE)
-ifdef GAMECUBE_BUILD
-CFLAGS	+= -DGAMECUBE_BUILD
-endif
-CXXFLAGS	=	$(CFLAGS)
+SRC=$(wildcard src/*.c)
+GC_OBJ=${SRC:src/%.c=build/%.gc.o}
+WII_OBJ=${SRC:src/%.c=build/%.wii.o}
 
-LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
+all: gc wii
 
-#---------------------------------------------------------------------------------
-# any extra libraries we wish to link with the project
-#---------------------------------------------------------------------------------
-ifdef GAMECUBE_BUILD
-LIBS	:=	-logc -lm
-else
-LIBS	:=	-lwiiuse -lbte -logc -lm
-endif
+gc: build/main.gc.dol
+wii: build/main.wii.dol
 
-#---------------------------------------------------------------------------------
-# list of directories containing libraries, this must be the top level containing
-# include and lib
-#---------------------------------------------------------------------------------
-LIBDIRS	:=
+build/main.gc.elf: build ${GC_OBJ}
+	${CC} ${GC_OBJ} ${LDFLAGS} ${GC_LDFLAGS} -Wl,-Map,$@.map -o $@
 
-#---------------------------------------------------------------------------------
-# no real need to edit anything past this point unless you need to add additional
-# rules for different file extensions
-#---------------------------------------------------------------------------------
-ifneq ($(BUILD),$(notdir $(CURDIR)))
-#---------------------------------------------------------------------------------
+build/main.wii.elf: build ${WII_OBJ}
+	${CC} ${WII_OBJ} ${LDFLAGS} ${WII_LDFLAGS} -Wl,-Map,$@.map -o $@
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
+build/%.gc.o: src/%.c
+	${CC} ${CFLAGS} ${GC_CFLAGS} -c -o $@ $<
 
-export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
-					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+build/%.wii.o: src/%.c
+	${CC} ${CFLAGS} ${WII_CFLAGS} -c -o $@ $<
 
-export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+%.dol: %.elf
+	elf2dol $< $@
 
-#---------------------------------------------------------------------------------
-# automatically build a list of object files for our project
-#---------------------------------------------------------------------------------
-CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
-sFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
-SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.S)))
-BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
+build:
+	mkdir -p build
 
-#---------------------------------------------------------------------------------
-# use CXX for linking C++ projects, CC for standard C
-#---------------------------------------------------------------------------------
-ifeq ($(strip $(CPPFILES)),)
-	export LD	:=	$(CC)
-else
-	export LD	:=	$(CXX)
-endif
-
-export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES))
-export OFILES_SOURCES := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(sFILES:.s=.o) $(SFILES:.S=.o)
-export OFILES := $(OFILES_BIN) $(OFILES_SOURCES)
-
-export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES)))
-
-#---------------------------------------------------------------------------------
-# build a list of include paths
-#---------------------------------------------------------------------------------
-export INCLUDE	:=	$(foreach dir,$(INCLUDES), -iquote $(CURDIR)/$(dir)) \
-					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-					-I$(CURDIR)/$(BUILD) \
-					-I$(LIBOGC_INC)
-
-#---------------------------------------------------------------------------------
-# build a list of library paths
-#---------------------------------------------------------------------------------
-export LIBPATHS	:= -L$(LIBOGC_LIB) $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
-
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
-.PHONY: $(BUILD) clean run gamecube all
-
-#---------------------------------------------------------------------------------
-$(BUILD):
-	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-
-#---------------------------------------------------------------------------------
 clean:
-	@echo clean ...
-	@rm -fr build build_gamecube
-	@rm -f $(notdir $(CURDIR)).elf $(notdir $(CURDIR)).dol
-	@rm -f spout_gamecube.elf spout_gamecube.dol
+	rm -rf build
 
-#---------------------------------------------------------------------------------
-run:
-	wiiload $(TARGET).dol
-
-gamecube:
-	@$(MAKE) GAMECUBE_BUILD=1
-
-all:
-	@$(MAKE) --no-print-directory
-	@$(MAKE) --no-print-directory GAMECUBE_BUILD=1
-
-#---------------------------------------------------------------------------------
-else
-
-DEPENDS	:=	$(OFILES:.o=.d)
-
-#---------------------------------------------------------------------------------
-# main targets
-#---------------------------------------------------------------------------------
-$(OUTPUT).dol: $(OUTPUT).elf
-$(OUTPUT).elf: $(OFILES)
-
-$(OFILES_SOURCES) : $(HFILES)
-
-#---------------------------------------------------------------------------------
-# This rule links in binary data with the .jpg extension
-#---------------------------------------------------------------------------------
-%.jpg.o	%_jpg.h :	%.jpg
-#---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	$(bin2o)
-
--include $(DEPENDS)
-
-#---------------------------------------------------------------------------------
-endif
-#---------------------------------------------------------------------------------
+.PHONY: all gc wii clean

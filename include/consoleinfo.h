@@ -49,6 +49,63 @@
 #define LATTE_B1X		0x60
 #define LATTE_B1X70		0x70
 
+#define DVD_DEVICECODE_ADDR	0x800030E6
+
+// MEI devices, 0x00xx
+#define DVD_DEVICECODE_REALDRIVE        0x0000
+#define DVD_DEVICECODE_NRDRIVE          0x0001
+#define DVD_DEVICECODE_RVLREALDRIVE     0x0002
+#define DVD_DEVICECODE_RVLRDRIVE        0x0003
+
+// AMC device, 0x01xx
+#define DVD_DEVICECODE_DDH              0x0100
+
+// Hudson devices, 0x02xx
+#define DVD_DEVICECODE_NPDP             0x0200
+#define DVD_DEVICECODE_GDEV             0x0201
+#define DVD_DEVICECODE_NDEV             0x0202
+#define DVD_DEVICECODE_RVLH             0x0203
+
+// Arcade devices, 0x03xx
+#define DVD_DEVICECODE_RVA              0x0300
+    
+// Triforce; note this is not what triforce returns to "get device ID"
+#define DVD_DEVICECODE_GCAM             0x1000
+
+#define DVD_DEVICECODE_PRESENT          0x8000
+#define DVD_DEVICECODE_FATAL            0x0001
+
+typedef enum {
+	DvdDevice_GCRetail = 0,
+	DvdDevice_GCNR,
+	DvdDevice_RVLRetail,
+	DvdDevice_RVTR,
+	DvdDevice_DDH,
+	DvdDevice_NPDP,
+	DvdDevice_GDEV,
+	DvdDevice_NDEV,
+	DvdDevice_RVTH,
+	DvdDevice_RVA,
+	DvdDevice_Triforce,
+	DvdDevice_Fatal,
+	DvdDevice_Count
+} DvdDevice;
+
+const char *dvd_device_str[DvdDevice_Count] = {
+	"Retail (GameCube)",
+	"NR Reader",
+	"Retail (Wii)",
+	"RVT-R Reader",
+	"Dolphin Development Hardware",
+	"NPDP Reader",
+	"GDEV",
+	"NDEV",
+	"RVT-H Reader",
+	"Revolution Arcade",
+	"Triforce",
+	"Fatal error occured while reading drive code!"
+};
+
 typedef enum {
 	ConsoleType_GameCube = 0,
 	ConsoleType_Wii,
