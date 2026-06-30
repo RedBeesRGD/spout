@@ -5,7 +5,14 @@
 #include <ogc/machine/processor.h>
 #include <ogc/ipc.h>
 #include <ogc/system.h>
+#include <ogc/dvd.h>
 #include <wiiuse/wpad.h>
+
+#ifndef GAMECUBE_BUILD
+#include "di.h"
+#include "dvd.h"
+#endif
+
 #include "consoleinfo.h"
 #include "utils.h"
 #include "haxx.h"
@@ -15,6 +22,65 @@ static GXRModeObj *rmode = NULL;
 
 int pvr = 0;
 int ctype_index = 0;
+
+char g_drive_date[10];
+
+#ifndef GAMECUBE_BUILD
+
+void make_drive_date(u32 date) {
+	char temp[9] = {0};
+	char day[3] = {0};
+	char month[3] = {0};
+	char year[6] = {0};
+
+	sprintf(temp, "%08x", date);
+	snprintf(year, sizeof(year), "%c%c%c%c", temp[0], temp[1], temp[2], temp[3]);
+	sprintf(month, "%c%c", temp[4], temp[5]);
+	sprintf(day, "%c%c", temp[6], temp[7]);
+
+
+	char result[10] = {0};
+
+			sprintf(g_drive_date, "%s.%s.%s", month, day, year);
+}
+
+int get_drive_code(u16 deviceCode) {
+	switch(deviceCode) {
+		case DVD_DEVICECODE_REALDRIVE:
+			return DvdDevice_GCRetail;
+		case DVD_DEVICECODE_NRDRIVE:
+			if(ctype_index == ConsoleType_Wii) return DvdDevice_Fatal;
+			return DvdDevice_GCNR;
+		case DVD_DEVICECODE_RVLREALDRIVE:
+			return DvdDevice_RVLRetail;
+		case DVD_DEVICECODE_RVLRDRIVE:
+			return DvdDevice_RVTR;
+
+		case DVD_DEVICECODE_DDH:
+			return DvdDevice_DDH;
+		case DVD_DEVICECODE_NPDP:
+			return DvdDevice_NPDP;
+		case DVD_DEVICECODE_GDEV:
+			return DvdDevice_GDEV;
+		case DVD_DEVICECODE_NDEV:
+			return DvdDevice_NDEV;
+
+		case DVD_DEVICECODE_RVLH:
+			return DvdDevice_RVTH;
+		case DVD_DEVICECODE_RVA:
+			return DvdDevice_RVA;
+		case DVD_DEVICECODE_GCAM:
+			return DvdDevice_Triforce;
+		default:
+			if(deviceCode & DVD_DEVICECODE_PRESENT) { // verify
+				return DvdDevice_Present;
+			} 
+			else {
+				return DvdDevice_Unknown;
+			}
+	}
+}
+#endif
 
 int get_cpu_type( void ) {
 	switch(pvr) {
@@ -113,9 +179,9 @@ void get_ram_info(char *buf) {
 	strcpy(buf, "MEM1: ");
 	ram_to_units(get_mem1_size(dolphin), substr, sizeof(substr));
 	strcat(buf, substr);
-	if(get_mem2_size(dolphin)) {
+	if(get_mem2_size()) {
 		strcat(buf, "\n        MEM2: ");
-		ram_to_units(get_mem2_size(dolphin), substr, sizeof(substr));
+		ram_to_units(get_mem2_size(), substr, sizeof(substr));
 		strcat(buf, substr);
 	}
 }
@@ -146,10 +212,6 @@ int get_console_type( void ) {
 }
 
 void get_console_info(struct console_info* c_ptr) {
-	// 3 phases:
-	// Variables are retrieved by helper function
-	// Strings are permuted for special cases
-	// Strings are copied into struct
 	int cputype_index = get_cpu_type();
 	int chipset_type_index = get_chipset_type();
 	ctype_index = get_console_type();
@@ -157,13 +219,23 @@ void get_console_info(struct console_info* c_ptr) {
 	char chipset_type[64];
 	char console_type[64];
 	char ram_info[64];
+	char drive_type[64];
 	get_ram_info(ram_info);
+
+	#ifndef GAMECUBE_BUILD
+	DI_DriveID drive_info = init_dvd_info();
+	int drive_index = get_drive_code(drive_info.dev_code);
+	#endif
 
 	u32 flipperId = ((vu32*)0xCC003000)[11];
 
 	strcpy(cpu_type, cpu_type_str[cputype_index]);
 	strcpy(chipset_type, chipset_type_str[chipset_type_index]);
 	strcpy(console_type, console_type_str[ctype_index]);
+	
+	#ifndef GAMECUBE_BUILD
+	strcpy(drive_type, dvd_device_str[drive_index]);
+	#endif
 
 	if(cputype_index == CpuType_Unknown) {
 		if((pvr & PVR_BROADWAY_BASE) == 0x87000) {
@@ -185,6 +257,13 @@ void get_console_info(struct console_info* c_ptr) {
 	strcpy(c_ptr->ram_info, ram_info);
 	strcpy(c_ptr->cpu_type, cpu_type);
 	strcpy(c_ptr->chipset_type, chipset_type);
+
+	#ifndef GAMECUBE_BUILD
+	strcpy(c_ptr->drive_type, drive_type);
+	make_drive_date(drive_info.rel_date);
+	strcpy(c_ptr->drive_date, g_drive_date);
+	#endif
+
 	strcpy(c_ptr->console_type, console_type);
 }
 
@@ -215,23 +294,26 @@ int main( void ) {
 	Haxx_GetBusAccess();
 	#endif
 
-	pvr = mfpvr();
-	struct console_info c = {0};
-	get_console_info(&c);
-
 	CON_EnableGecko(1, true);
+
 	printf("\e[0;36mSpout\e[0;37m");
 	#ifdef GAMECUBE_BUILD
 	printf(" - GameCube Version");
 	#else
 	printf(" - Wii Version");
 	#endif
+	
+	pvr = mfpvr();
+	struct console_info c = {0};
+	get_console_info(&c);
 
 	printf("\n\n");
 	printf("Console Type: %s\n", c.console_type);
 	printf("CPU: %s\n", c.cpu_type);
 	printf("Chipset: %s\n", c.chipset_type);
 	printf("RAM info:\n        %s\n", c.ram_info);
+	printf("\e[1GDrive type: %s\n", c.drive_type);
+	printf("Drive date: %s\n", c.drive_date);
 
 	while(SYS_MainLoop()) {
 		#ifndef GAMECUBE_BUILD
@@ -243,6 +325,8 @@ int main( void ) {
 		u32 pressed = PAD_ButtonsDown(0);
 		if(pressed & PAD_BUTTON_A) exit(0);
 		VIDEO_WaitVSync();
+		printf("Returning to HBC...\n\n");
+		exit(0);
 	}
 
 	return 0;

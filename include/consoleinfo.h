@@ -73,7 +73,6 @@
 #define DVD_DEVICECODE_GCAM             0x1000
 
 #define DVD_DEVICECODE_PRESENT          0x8000
-#define DVD_DEVICECODE_FATAL            0x0001
 
 typedef enum {
 	DvdDevice_GCRetail = 0,
@@ -87,7 +86,9 @@ typedef enum {
 	DvdDevice_RVTH,
 	DvdDevice_RVA,
 	DvdDevice_Triforce,
+	DvdDevice_Present,
 	DvdDevice_Fatal,
+	DvdDevice_Unknown,
 	DvdDevice_Count
 } DvdDevice;
 
@@ -103,7 +104,9 @@ const char *dvd_device_str[DvdDevice_Count] = {
 	"RVT-H Reader",
 	"Revolution Arcade",
 	"Triforce",
-	"Fatal error occured while reading drive code!"
+	"Present",
+	"Fatal error occured while reading drive code!",
+	"Unknown"
 };
 
 typedef enum {
@@ -222,4 +225,6 @@ struct console_info {
 	char cpu_type[64];
 	char chipset_type[64];
 	char ram_info[64];
+	char drive_type[64];
+	char drive_date[64];
 };

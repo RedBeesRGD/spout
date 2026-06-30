@@ -6,10 +6,10 @@ CC=${DEVKITPPC}/bin/powerpc-eabi-gcc
 CFLAGS=-O2 -Wall -Wextra -Iinclude
 LDFLAGS=-DGEKKO -mcpu=750 -meabi -mhard-float
 
-GC_CFLAGS=-I${DEVKITPRO}/libogc2/gamecube/include -DGAMECUBE_BUILD=1
+GC_CFLAGS=-I${DEVKITPRO}/libogc2/gamecube/include -DGAMECUBE_BUILD=1 -DHW_DOL=1
 GC_LDFLAGS=-L${DEVKITPRO}/libogc2/gamecube/lib -logc -lm -mogc
 
-WII_CFLAGS=-I${DEVKITPRO}/libogc2/wii/include
+WII_CFLAGS=-I${DEVKITPRO}/libogc2/wii/include -DHW_RVL=1
 WII_LDFLAGS=-L${DEVKITPRO}/libogc2/wii/lib -lwiiuse -lbte -logc -lm -mrvl
 
 SRC=$(wildcard src/*.c)
