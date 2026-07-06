@@ -4,67 +4,95 @@
 #include <string.h>
 #include <ogc/machine/processor.h>
 #include <wiiuse/wpad.h>
+
 #include "utils.h"
+#include "console_info.h"
 
-
-u32 get_mem1_size(int dolphin) {
-    
-    u32 mem_cfg = ((vu16 *)0xCC004000)[20] & 7;
-    switch (mem_cfg) { //  0xCC004028
-        case 0:
-	    if(dolphin) return *(u32*)(0x80000028);
-            return 0x1000000;
-            break;
-        case 1: case 4:
-            return 0x2000000;
-            break;
-        case 2: case 6:
-	    if(dolphin) return *(u32*)(0x80000028);
-            return 0x1800000;
-            break;
-        case 3: case 7:
-            return 0x3000000;
-            break;
-        case 5:
-            return 0x4000000;
-            break;
-	default:
-	    return *(u32*)(0x80000028);
-	    break;
-    }
-    return 0;
-}
-
-u32 get_mem2_size( void ) {
-	#ifdef GAMECUBE_BUILD
-	return 0;
+u8 get_dolphin_type( void ) {
+	#ifndef GAMECUBE_BUILD
+	int fd = IOS_Open("/dev/dolphin", 1);
+	if(fd >= 0) {
+		IOS_Close(fd);
+		return ConsoleType_DolphinWii;
+	}
+	IOS_Close(fd);
 	#else
-	
-	if (read32(0xcd800064) != 0xffffffff) return 0; // ahbprot
-	if ((read32(0xcd8005a0) >> 16) == 0xcafe)
-	write16(0xcd8b421a, 0x3fff);
-
-	u16 mem_rowsel = read16(0xcd8b4212) & 0x7;
-	u16 mem_ranksel = read16(0xcd8b4216) & 0x7;
-	u16 mem_rowmsk = read16(0xcd8b421a) & 0x3fff;
-
-	u32 mem_size = read32(0x80003118); // mem size dropped by ios
-
-	if(mem_size) return mem_size;
-	mem_size = 1 << (32 - cntlzw(((0x20000 >> mem_ranksel) & 0x3f000) | ((mem_rowmsk << mem_rowsel) & 0x3ffff)) + 10);
-	return mem_size;
-
+	// thanks Raiiri
+	// Checks reload stub. Won't work if 'enable cheats' is checked
+	// TODO: find a better way (some unemulated register?)
+	if(read32(0x80001800) == 0 && read32(0x80001804) == 'STUB') {
+		return ConsoleType_DolphinGC;
+	}
 	#endif
+	return 0;
 }
 
-void ram_to_units(uint32_t bytes, char *buf, size_t buf_size) {
-    if (bytes >= (1u << 30)) {
-        snprintf(buf, buf_size, "%u GiB", (unsigned)((bytes + (1u << 30) - 1) >> 30));
-    } else if (bytes >= (1u << 20)) {
-        snprintf(buf, buf_size, "%u MiB", (unsigned)((bytes + (1u << 20) - 1) >> 20));
-    } else if (bytes >= (1u << 10)) {
-        snprintf(buf, buf_size, "%u KiB", (unsigned)((bytes + (1u << 10) - 1) >> 10));
-    } else {
-        snprintf(buf, buf_size, "%u B", bytes);
-    }
+u32 wait_for_pad( void ) {
+	while(1) {
+		#ifndef GAMECUBE_BUILD
+		WPAD_ScanPads();
+		u32 pressed_w = WPAD_ButtonsDown(0);
+		if(pressed_w) return pressed_w;
+		#endif
+		PAD_ScanPads();
+		u32 pressed = PAD_ButtonsDown(0);
+		if(pressed) return pressed;
+	}
+}
+
+bool is_wii(u8 index) {
+	if(index == ConsoleType_Wii || index == ConsoleType_DolphinWii) return 1;
+	return 0;
+}
+
+bool is_gc(u8 index) {
+	if(index == ConsoleType_GameCube || index == ConsoleType_DolphinGC) return 1;
+	return 0;
+}
+
+void get_size_string(u32 value, char *buf, size_t buf_size) { // TODO: handle the weird cases better
+							      // (I vibe coded this one. sorry..)
+	if (value >= (1u << 30)) {
+        	snprintf(buf, buf_size, "%u GiB", (unsigned)((value + (1u << 30) - 1) >> 30));
+	} else if (value >= (1u << 20)) {
+        	snprintf(buf, buf_size, "%u MiB", (unsigned)((value + (1u << 20) - 1) >> 20));
+	} else if (value >= (1u << 10)) {
+        	snprintf(buf, buf_size, "%u KiB", (unsigned)((value + (1u << 10) - 1) >> 10));
+	} else {
+        	snprintf(buf, buf_size, "%u B", value);
+	}
+}
+
+u32 get_splash_size( void ) { // thanks Swiss
+	if(SPLASH_GLOBAL) return SPLASH_GLOBAL;
+	u16 mem_cfg = ((vu16 *)0xcc004000)[20] & 7; // 0xcc004028
+						    // TODO: can this be moved to consoleinfo.h?
+	
+	switch (mem_cfg) { // TODO: Chip config info from BS1
+        	case 0: // 16MiB
+            		return 0x1000000;
+            		break;
+        	case 1: case 4: // 32MiB
+            		return 0x2000000;
+            		break;
+        	case 2: case 6: // 24MiB
+            		return 0x1800000;
+            		break;
+        	case 3: case 7: // 48MiB
+            		return 0x3000000;
+            		break;
+        	case 5: // 64MiB
+            		return 0x4000000;
+            		break;
+		default:
+	    		return (u32)mem_cfg; // Will produce broken output later, but this really should
+					     // never happen anyways..
+	    		break;
+    		}
+}
+
+u32 get_gddr_size( void ) { // thanks libogc-rice
+	if(GDDR_GLOBAL) return GDDR_GLOBAL;
+
+	return(1 << (32 - cntlzw(((0x20000 >> GDDR_RANKSEL) & 0x3f000) | ((GDDR_ROWMSK << GDDR_ROWSEL) & 0x3ffff)) + 10));
 }

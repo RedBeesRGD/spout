@@ -2,5 +2,4 @@
 *.dol
 *.elf
 build*/
-*swp*
-ghettorun.sh
+*.swp

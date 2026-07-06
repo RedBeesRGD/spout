@@ -37,7 +37,7 @@ distribution.
 #include <malloc.h>
 #include <unistd.h>
 
-#include "di.h"
+#include "externals/libdi.h"
 #include <ogc/cache.h>
 #include <ogc/es.h>
 #include <ogc/ipc.h>
