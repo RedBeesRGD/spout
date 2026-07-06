@@ -145,7 +145,7 @@ static const char *cpu_type_str_list[CpuType_Count] = {
 	"Broadway DD1.3",
 	"Broadway DD1.3i",
 	"Broadway DD2.0 (Broadway-1)",
-	"Unknown (PVR 0x08X - maybe Broadway DD%d.%d?)",
+	"Unknown (PVR 0x%08X - maybe Broadway DD%d.%d?)",
 	"Espresso",
 	"Espresso (engineering sample)",
 	"Unknown (PVR 0x%08X)"
