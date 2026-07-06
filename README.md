@@ -1,5 +1,4 @@
 **Spout** is a system information tool for the GameCube and Wii.
 
-`make` for Wii build
+`make` to build all, `make gc`/`make wii` to build only one target
 
-`make gamecube` for GameCube build
