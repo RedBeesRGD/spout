@@ -4,7 +4,7 @@
    Copyright (C) 2022 Palapeli
    SPDX-License-Identifier: MIT */
 
-#include "externals/libhaxx.h"
+#include "3rdparty/libhaxx.h"
 #include <stdio.h>
 #include <unistd.h>
 
@@ -18,7 +18,7 @@
 #include <ogc/machine/processor.h>
 
 /* [nitr8]: Added */
-#include "externals/hollywood.h"
+#include "3rdparty/hollywood.h"
 
 /* [nitr8]: Don't just ignore warnings!
    #pragma GCC diagnostic pop */

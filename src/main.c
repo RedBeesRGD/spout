@@ -12,8 +12,8 @@
 #include "utils.h"
 
 #ifndef GAMECUBE_BUILD
-#include "externals/libhaxx.h"
-#include "externals/libseeprom.h"
+#include "3rdparty/libhaxx.h"
+#include "3rdparty/libseeprom.h"
 #endif
 
 static void *xfb = NULL;

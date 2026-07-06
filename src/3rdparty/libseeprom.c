@@ -27,16 +27,16 @@
 #include <unistd.h>
 #include <ogc/machine/processor.h>
 
-#include "externals/libseeprom.h"
+#include "3rdparty/libseeprom.h"
 
 /* [nitr8]: Added */
-#include "externals/old_utils.h"
+#include "3rdparty/old_utils.h"
 
 /* [nitr8]: Added */
-#include "externals/hollywood.h"
+#include "3rdparty/hollywood.h"
 
 /* [nitr8]: Added */
-#include "externals/gpio.h"
+#include "3rdparty/gpio.h"
 
 /* [nitr8]: Added */
 #ifndef NO_VERSION_CLEAR

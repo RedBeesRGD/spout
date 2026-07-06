@@ -5,8 +5,8 @@
 #include <gccore.h>
 #include <wiiuse/wpad.h>
 
-#include "externals/liberror/liberror.h"
-#include "externals/old_utils.h"
+#include "3rdparty/liberror/liberror.h"
+#include "3rdparty/old_utils.h"
 
 void ThrowError(const char* errorString)
 {

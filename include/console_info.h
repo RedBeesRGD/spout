@@ -1,5 +1,5 @@
 #ifndef GAMECUBE_BUILD
-#include "externals/libdi.h"
+#include "3rdparty/libdi.h"
 #endif
 #ifdef GAMECUBE_BUILD
 #include <gctypes.h> // TODO: bleh
@@ -127,7 +127,29 @@ typedef enum {
 	CpuType_Count
 } CpuType;
 
-extern const char *cpu_type_str_list[];
+
+static const char *cpu_type_str_list[CpuType_Count] = {
+	"PowerPC 750L (Lonestar) DD1.0 (or Gekko DD2.0)",
+	"PowerPC 750L (Lonestar) DD2.0",
+	"PowerPC 750L (Lonestar) DD2.2",
+	"Gekko DD1.0 or 2.0",
+	"Gekko DD2.3 (or 2.3b/e)",
+	"Gekko DD2.3a (or 2.3ei)",
+	"Gekko DD2.4",
+	"Gekko DD2.4e",
+	"Gekko DD4.0",
+	"Broadway DD1.0",
+	"Broadway DD1.01",
+	"Broadway DD1.2",
+	"Broadway DD1.2i",
+	"Broadway DD1.3",
+	"Broadway DD1.3i",
+	"Broadway DD2.0 (Broadway-1)",
+	"Unknown (PVR 0x08X - maybe Broadway DD%d.%d?)",
+	"Espresso",
+	"Espresso (engineering sample)",
+	"Unknown (PVR 0x%08X)"
+};
 
 typedef enum {
 	ConsoleType_GameCube = 0,
@@ -138,7 +160,13 @@ typedef enum {
 	ConsoleType_Count
 } BaseConsoleType;
 
-extern const char *base_console_type_str_list[];
+static const char *base_console_type_str_list[ConsoleType_Count] = {
+	"GameCube",
+	"Wii",
+	"Wii U",
+	"Dolphin (GameCube mode)",
+	"Dolphin (Wii mode)"
+};
 
 typedef enum {
 	ChipsetType_FlipperRevA = 0,
@@ -168,8 +196,41 @@ typedef enum {
 } ChipsetType;
 
 // TODO: Maybe-revs for hollywood and latte unknowns?
-
-extern const char *chipset_type_str_list[];
+static const char *chipset_type_str_list[ChipsetType_Count] = {
+	"Flipper (rev A) (HW1)",
+	"Flipper (rev B) (HW2)",
+	"Flipper (rev C) (HW3)",
+	"Flipper (rev T)", // TODO: HW4??
+	"Flipper (unknown, 0x%08X) (rev %c?)",
+	"Hollywood ES1.0",
+	"Hollywood ES1.1",
+	"Hollywood ES1.21",
+	"Hollywood ES2.01",
+	"Hollywood ES2.1",
+	"Hollywood ES3.0 (Bollywood ES)",
+	"Hollywood ES3.1 (Bollywood)",
+	"Hollywood (unknown, 0x%08X)",
+	"Latte A11",
+	"Latte A12",
+	"Latte A2X",
+	"Latte A3X",
+	"Latte A4X",
+	"Latte A5X",
+	"Latte B1X",
+	"Latte B1X (late)",
+	"Latte (unknown, 0x%02X)", // TODO: This one is a u8,
+				   // so it gets just one byte
+				   // output.
+				   // Realistically, could the same
+				   // be done for other values?
+				   // Do we need so many u32s?
+	"Unknown" // TODO: What can we show here?
+		  // (In other words, is it ok to try to get
+		  // the chipset id value on the wrong platform?
+		  // Same with other things like gddr value..
+		  // Will impact if i need to do all those
+		  // conditionals or not)
+};
 
 typedef enum {
 	DriveType_GCNROM = 0, // TODO: wii u..
@@ -189,7 +250,24 @@ typedef enum {
 	DriveType_Count
 } DriveType;
 
-extern const char *drive_type_str_list[];
+static const char *drive_type_str_list[DriveType_Count] = {
+	"NROM Reader (Retail GameCube)",
+	"NR Reader",
+	"NPDP Reader",
+	"Dolphin Development Hardware",
+	"GDEV",
+	"Triforce",
+	"NROM Reader (Retail Wii)",
+	"RVT-R Reader",
+	"RVT-H Reader",
+	"NDEV",
+	"Revolution Arcade",
+	"Unknown (device code 0x%04X)", // TODO: verify, until then
+					// won't be used
+	"Drive is missing or broken!",  // TODO: does this come up
+		  		        // on a console with no drive?
+	"Unknown (device code 0x%04X)"
+};
 
 struct console { // TODO: can we initialize these as consts
 	// params (raw data)

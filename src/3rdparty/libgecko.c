@@ -16,9 +16,11 @@ Copyright (C) 2024		nitr8
 #include <stdio.h>
 #include <ogc/machine/processor.h>
 
-#include "externals/hollywood.h" // TODO: Why do we need this?
-#include "externals/libgecko.h"
-#include "externals/old_utils.h"
+#include "3rdparty/hollywood.h" // TODO: Why do we need this?
+				// In fact, why do we need
+				// this whole file?
+#include "3rdparty/libgecko.h"
+#include "3rdparty/old_utils.h"
 
 
 /* #define GECKO_PRINT_ALT			1 */

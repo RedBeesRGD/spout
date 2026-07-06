@@ -8,16 +8,16 @@
 /* [nitr8]: Added */
 #include <ogc/machine/processor.h>
 
-#include "externals/old_utils.h"
-#include "externals/liberror/liberror.h"
-#include "externals/liberror/errorcodes.h"
+#include "3rdparty/old_utils.h"
+#include "3rdparty/liberror/liberror.h"
+#include "3rdparty/liberror/errorcodes.h"
 
 /* [nitr8]: Added*/
-#include "externals/liberror/errorstrings.h"
+#include "3rdparty/liberror/errorstrings.h"
 
 
 /* [nitr8]: Added */
-#include "externals/libgecko.h"
+#include "3rdparty/libgecko.h"
 
 /* [nitr8]: Added */
 

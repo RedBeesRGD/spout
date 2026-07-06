@@ -12,8 +12,8 @@ GC_LDFLAGS=-L${DEVKITPRO}/libogc2/gamecube/lib -logc -lm -mogc
 WII_CFLAGS=-I${DEVKITPRO}/libogc2/wii/include -DHW_RVL=1
 WII_LDFLAGS=-L${DEVKITPRO}/libogc2/wii/lib -lwiiuse -lbte -logc -lm -mrvl
 
-GC_SRC=src/main.c src/utils.c src/console_info.c
-WII_SRC=src/main.c src/utils.c src/console_info.c src/externals/libdi.c src/externals/liberror.c src/externals/libgecko.c src/externals/libhaxx.c src/externals/libseeprom.c src/externals/old_utils.c
+GC_SRC=src/main.c src/utils.c
+WII_SRC=src/main.c src/utils.c src/3rdparty/libdi.c src/3rdparty/liberror.c src/3rdparty/libgecko.c src/3rdparty/libhaxx.c src/3rdparty/libseeprom.c src/3rdparty/old_utils.c
 GC_OBJ=${GC_SRC:src/%.c=build/%.gc.o}
 WII_OBJ := $(patsubst src/%.c,build/%.wii.o,$(WII_SRC))
 
@@ -39,7 +39,7 @@ build/%.wii.o: src/%.c
 
 build:
 	mkdir -p build
-	mkdir -p build/externals
+	mkdir -p build/3rdparty
 
 clean:
 	rm -rf build

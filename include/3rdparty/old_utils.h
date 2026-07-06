@@ -14,7 +14,7 @@
 #include <ogc/system.h>
 
 /* [nitr8]: Added */
-#include "externals/libgecko.h"
+#include "3rdparty/libgecko.h"
 
 #define RGDSDB_PAD_BUTTON_UP 0x777
 
