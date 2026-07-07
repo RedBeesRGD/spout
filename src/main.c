@@ -235,6 +235,8 @@ void get_full_console_type_str( void ) { // TODO: actually do it
 }
 
 void get_all_console_info( void ) {
+	char *buf = NULL;
+
 	c.pvr = mfpvr();
 	c.cpu_type_index = get_cpu_type();
 	c.base_console_type_index = get_base_console_type();
@@ -281,22 +283,26 @@ void get_all_console_info( void ) {
 	
 	// strings
 	strcpy(c.cpu_type_str, cpu_type_str_list[c.cpu_type_index]);
+	
+	buf = cpu_type_str_list[c.cpu_type_index];
 	if(c.cpu_type_index == CpuType_UnknownBroadway) {
-		sprintf(c.cpu_type_str, c.cpu_type_str, c.pvr, ((c.pvr & 0x00000f00) >> 8), (c.pvr & 0x0000000f));
+		sprintf(c.cpu_type_str, buf, c.pvr, ((c.pvr & 0x00000f00) >> 8), (c.pvr & 0x0000000f));
 	}
 	if(c.cpu_type_index == CpuType_UnknownGeneric) {
-		sprintf(c.cpu_type_str, c.cpu_type_str, c.pvr);
+		sprintf(c.cpu_type_str, buf, c.pvr);
 	}
 
 	strcpy(c.chipset_type_str, chipset_type_str_list[c.chipset_type_index]);
+
+	buf = chipset_type_str_list[c.chipset_type_index];
 	if(c.chipset_type_index == ChipsetType_UnknownFlipper) {
-		sprintf(c.chipset_type_str, c.chipset_type_str, c.flipper_id, c.flipper_rev_letter);
+		sprintf(c.chipset_type_str, buf, c.flipper_id, c.flipper_rev_letter);
 	}
 	if(c.chipset_type_index == ChipsetType_UnknownHollywood) {
-		sprintf(c.chipset_type_str, c.chipset_type_str, c.hw_chiprevid);
+		sprintf(c.chipset_type_str, buf, c.hw_chiprevid);
 	}
 	if(c.chipset_type_index == ChipsetType_UnknownLatte) {
-		sprintf(c.chipset_type_str, c.chipset_type_str, c.lt_chiprevid);
+		sprintf(c.chipset_type_str, buf, c.lt_chiprevid);
 	}
 
 	get_ram_info_str(c.ram_info_str); // TODO: maybe make all these
@@ -304,8 +310,10 @@ void get_all_console_info( void ) {
 					  // consistent
 	#ifndef GAMECUBE_BUILD
 	strcpy(c.drive_type_str, drive_type_str_list[c.drive_type_index]);
+
+	buf = drive_type_str_list[c.drive_type_index];
 	if(c.drive_type_index == DriveType_Unknown) {
-		sprintf(c.drive_type_str, c.drive_type_str, c.drive_info.dev_code);
+		sprintf(c.drive_type_str, buf, c.drive_info.dev_code);
 	}
 
 	get_drive_date_str();

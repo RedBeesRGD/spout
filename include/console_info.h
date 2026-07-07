@@ -152,7 +152,7 @@ static const char *cpu_type_str_list[CpuType_Count] = {
 	"Broadway DD1.3",
 	"Broadway DD1.3i",
 	"Broadway DD2.0 (Broadway-1)",
-	"Unknown (PVR 0x%08X - maybe Broadway DD%d.%d?)",
+	"Unknown (PVR 0x%08x - maybe Broadway DD%d.%d?)",
 	"Espresso",
 	"Espresso (engineering sample)",
 	"Unknown (PVR 0x%08X)"
@@ -309,13 +309,13 @@ struct console { // TODO: can we initialize these as consts
 	#endif
 
 	// strings
-	char cpu_type_str[64];
-	char chipset_type_str[64];
-	char ram_info_str[64];
+	char cpu_type_str[128];
+	char chipset_type_str[128];
+	char ram_info_str[128];
 
 	#ifndef GAMECUBE_BUILD
-	char drive_type_str[64];
-	char drive_date_str[64];
+	char drive_type_str[128];
+	char drive_date_str[128];
 	#endif
 
 	char full_console_type_str[128];
