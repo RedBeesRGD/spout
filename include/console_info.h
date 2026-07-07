@@ -76,6 +76,10 @@
 // Hudson devices, 0x02xx
 // Arcade devices, 0x03xx
 
+// TODO: More types (eg wiiu),
+// correspond drive dates and types
+// to models
+
 #define DRIVE_TYPE_GCNROM	0x0000 // NROM = retail
 #define DRIVE_TYPE_NR		0x0001
 #define DRIVE_TYPE_NPDP		0x0200
