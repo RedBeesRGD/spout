@@ -1,7 +1,9 @@
+#ifndef CONSOLE_INFO_H
+#define CONSOLE_INFO_H
+
 #ifndef GAMECUBE_BUILD
 #include "3rdparty/libdi.h"
-#endif
-#ifdef GAMECUBE_BUILD
+#else
 #include <gctypes.h> // TODO: bleh
 #endif
 
@@ -314,3 +316,4 @@ struct console { // TODO: can we initialize these as consts
 	char full_console_type_str[128];
 };
 
+#endif // CONSOLE_INFO_H
