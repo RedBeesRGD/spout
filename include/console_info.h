@@ -10,6 +10,7 @@
 #define IS_CAFE (*(vu16*)0xcd8005a0 == 0xCAFE)
 
 // PVRs
+// TODO: Verify with qemu source, etc.
 
 #define PVR_LONESTAR_DD1	0x00080100
 #define PVR_LONESTAR_DD20	0x00080200 // 750L
