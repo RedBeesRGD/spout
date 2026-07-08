@@ -65,10 +65,7 @@ void get_size_string(u32 value, char *buf, size_t buf_size) { // TODO: handle th
 
 u32 get_splash_size( void ) { // thanks Swiss
 	if(SPLASH_GLOBAL) return SPLASH_GLOBAL;
-	u16 mem_cfg = ((vu16 *)0xcc004000)[20] & 7; // 0xcc004028
-						    // TODO: can this be moved to consoleinfo.h?
-	
-	switch (mem_cfg) { // TODO: Chip config info from BS1
+	switch (MEM_CFG & 7) { // TODO: Chip config info from BS1
         	case 0: // 16MiB
             		return 0x1000000;
             		break;
@@ -85,7 +82,7 @@ u32 get_splash_size( void ) { // thanks Swiss
             		return 0x4000000;
             		break;
 		default:
-	    		return (u32)mem_cfg; // Will produce broken output later, but this really should
+	    		return (u32)(MEM_CFG & 7); // Will produce broken output later, but this really should
 					     // never happen anyways..
 	    		break;
     		}

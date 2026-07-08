@@ -23,10 +23,10 @@ struct console c = {0};
 
 u8 get_cpu_type( void ) {
 	switch(c.pvr) {
-		case PVR_750_DD10:
-			return CpuType_750DD10;
-		case PVR_750_DD20:
-			return CpuType_750DD20;
+		case PVR_LONESTAR_DD10:
+			return CpuType_LonestarDD10;
+		case PVR_LONESTAR_DD20:
+			return CpuType_LonestarDD20;
 		case PVR_LONESTAR_DD22:
 			return CpuType_LonestarDD22;
 
@@ -299,7 +299,7 @@ void get_all_console_info( void ) {
 		sprintf(c.chipset_type_str, buf, c.flipper_id, c.flipper_rev_letter);
 	}
 	if(c.chipset_type_index == ChipsetType_UnknownHollywood) {
-		sprintf(c.chipset_type_str, buf, c.hw_chiprevid);
+		sprintf(c.chipset_type_str, buf, c.hw_chiprevid, (((c.hw_chiprevid & 0xf0) >> 4) + 1), (c.hw_chiprevid & 0x0f));
 	}
 	if(c.chipset_type_index == ChipsetType_UnknownLatte) {
 		sprintf(c.chipset_type_str, buf, c.lt_chiprevid);

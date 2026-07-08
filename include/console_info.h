@@ -9,15 +9,16 @@
 
 #define IS_CAFE (*(vu16*)0xcd8005a0 == 0xCAFE)
 
-// TODO: what did arthur/minnow use??
+// TODO: what did arthur(Spruce)/minnow use??
 // Arthur the chip is 740/750 v3.1 - 00080301
 // Probably ok to assume any board with a non-Gekko 750 and no flipper is an arthur.
 // But what about minnow?
 
-#define PVR_750_DD10		0x00080100 // 750v1
-#define PVR_750_DD20		0x00080200 // 750v2
+#define PVR_LONESTAR_DD10	0x00080100 // 750v1
+#define PVR_LONESTAR_DD20	0x00080200 // 750v2
 #define PVR_LONESTAR_DD22	0x00088202 // 750L v2.2
 					   // (source: https://gist.github.com/gnzlbg/f4ccfb304b97708c142fd7004df8c761)
+					   // but, artx's clkspeed.c takes precendece in saying these are Lonestar..
 
 #define PVR_750CX_BASE 		0x00082000 // Not known to be used officially,
 					   // but it is apparently possible
@@ -119,6 +120,8 @@
 #define LT_CHIPREVID 	(*(vu8*)0xcd8005a3)
 
 #define SPLASH_GLOBAL	(*(u32*)0x80000028)
+#define MEM_CFG		((vu16*)0xcc004000)[20]
+
 #define GDDR_GLOBAL	(*(u32*)0x80003118)
 
 #define GDDR_ROWSEL	(*(u16*)0xcd8b4212) & 0x7
@@ -126,8 +129,8 @@
 #define GDDR_ROWMSK	(*(u16*)0xcd8b421a) & 0x3fff
 
 typedef enum {
-	CpuType_750DD10 = 0,
-	CpuType_750DD20,
+	CpuType_LonestarDD10 = 0,
+	CpuType_LonestarDD20,
 	CpuType_LonestarDD22,
 	CpuType_750CX,
 	CpuType_GekkoDD1or2,
@@ -154,8 +157,8 @@ typedef enum {
 
 
 static const char *cpu_type_str_list[CpuType_Count] = {
-	"PowerPC 750 DD1.0 (or Gekko DD2.0)",
-	"PowerPC 750 DD2.0",
+	"PowerPC 750L (Lonestar) DD1.0 (or Gekko DD2.0)",
+	"PowerPC 750L (Lonestar) DD2.0",
 	"PowerPC 750L (Lonestar) DD2.2",
 	"PowerPC 750CX or CXe (PVR 0x%08x - maybe DD%d.%d?)",
 	"Gekko DD1.0 or 2.0",
@@ -228,7 +231,7 @@ static const char *chipset_type_str_list[ChipsetType_Count] = {
 	"Flipper (rev B) (HW2)",
 	"Flipper (rev C) (HW3)",
 	"Flipper (rev T) (HW4)",
-	"Flipper (unknown, 0x%08x) (rev %c?)",
+	"Flipper (unknown, 0x%08x - maybe rev %c?)",
 	"Hollywood ES1.0",
 	"Hollywood ES1.1",
 	"Hollywood ES1.21",
@@ -236,7 +239,7 @@ static const char *chipset_type_str_list[ChipsetType_Count] = {
 	"Hollywood ES2.1",
 	"Hollywood ES3.0 (Bollywood ES)",
 	"Hollywood ES3.1 (Bollywood)",
-	"Hollywood (unknown, 0x%08x)",
+	"Hollywood (unknown, 0x%08x - maybe ES%d.%d?)",
 	"Latte A11",
 	"Latte A12",
 	"Latte A2X",
