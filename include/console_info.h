@@ -4,22 +4,37 @@
 #ifndef GAMECUBE_BUILD
 #include "3rdparty/libdi.h"
 #else
-#include <gctypes.h> // TODO: bleh
+#include <gctypes.h>
 #endif
 
 #define IS_CAFE (*(vu16*)0xcd8005a0 == 0xCAFE)
 
-// PVRs
-// TODO: Verify with qemu source, etc.
+// TODO: what did arthur/minnow use??
+// Arthur the chip is 740/750 v3.1 - 00080301
+// Probably ok to assume any board with a non-Gekko 750 and no flipper is an arthur.
+// But what about minnow?
 
-#define PVR_LONESTAR_DD1	0x00080100
-#define PVR_LONESTAR_DD20	0x00080200 // 750L
-#define PVR_LONESTAR_DD22	0x00088202
+#define PVR_750_DD10		0x00080100 // 750v1
+#define PVR_750_DD20		0x00080200 // 750v2
+#define PVR_LONESTAR_DD22	0x00088202 // 750L v2.2
+					   // (source: https://gist.github.com/gnzlbg/f4ccfb304b97708c142fd7004df8c761)
+
+#define PVR_750CX_BASE 		0x00082000 // Not known to be used officially,
+					   // but it is apparently possible
+					   // to put a 750CX on a GameCube board.
 
 #define PVR_GEKKO_DD10		0x70000100
-#define PVR_GEKKO_DD20_INTENDED	PVR_LONESTAR_DD1 // Apparently, actual Gekko DD2.0 had the DD1.0 PVR 
+#define PVR_GEKKO_DD20_INTENDED	PVR_750_DD10 // Apparently, actual Gekko DD2.0 had the DD1.0 PVR 
 						 // written by mistake.
-						 // TODO: Also 750CX PVRs??
+#define PVR_GEKKO_BASE		0x00083000 // According to the above QEMU source,
+					   // this is also used by a couple 750CX
+					   // series chips.
+					   // One has identical PVR to Gekko2.4e..
+					   // I don't even know if they
+					   // are pin compatible, so I won't
+					   // define them seperately.
+					   // They might as well be weird
+					   // Gekko variants anyways.
 #define PVR_GEKKO_DD23		0x00083213
 #define PVR_GEKKO_DD23a		0x00083203
 #define PVR_GEKKO_DD23b		PVR_GEKKO_DD23 // why??
@@ -39,11 +54,9 @@
 #define PVR_BROADWAY_DD13i	0x00087113
 #define PVR_BROADWAY_DD20	0x00087200
 
+#define PVR_ESPRESSO_BASE	0x70010000	// WARNING: This and all of the Espresso
+						// revision-guessing code are purely speculative!
 #define PVR_ESPRESSO_ES	0x70010200 // This is specifically the one found in that board from GBAtemp.
-				   // Other Espresso PVRs are unknown.. I don't even know what
-				   // the revision is called
-				   // TODO: figure this out (Or maybe guess?? It's probably
-				   // 7xx for all Espresso, 1.2/1.21 or something)
 #define PVR_ESPRESSO	0x70010201
 
 // Chipset types (no Flipper, sorry, you're special)
@@ -63,10 +76,11 @@
 #define LATTE_A4X		0x40
 #define LATTE_A5X		0x50
 #define LATTE_B1X		0x60
-#define LATTE_B1X70		0x70
+#define LATTE_B1X70		0x70	// mystery type found in late consoles, no known official name
 
 // DVD drive types
-// TODO: verify gamecube/wii differences.. and make it actually work on gamecube..
+// TODO: verify gamecube/wii differences wrt the fatal stuff
+// .. and make it actually work on gamecube..
 // TODO: wiiu??
 
 #define DRIVE_TYPE_ADDR	0x800030E6
@@ -100,6 +114,7 @@
 #define DRIVE_IS_PRESENT	0x8000 // TODO: verify
 
 // misc. registers and globals
+#define PI_REG_CHIPID	((vu32*)0xcc003000)[11] // Flipper
 #define HW_CHIPREVID 	(*(vu32*)0xcd800214)
 #define LT_CHIPREVID 	(*(vu8*)0xcd8005a3)
 
@@ -111,15 +126,17 @@
 #define GDDR_ROWMSK	(*(u16*)0xcd8b421a) & 0x3fff
 
 typedef enum {
-	CpuType_LonestarDD1 = 0,
-	CpuType_LonestarDD20,
+	CpuType_750DD10 = 0,
+	CpuType_750DD20,
 	CpuType_LonestarDD22,
+	CpuType_750CX,
 	CpuType_GekkoDD1or2,
 	CpuType_GekkoDD23,
 	CpuType_GekkoDD23a,
 	CpuType_GekkoDD24,
 	CpuType_GekkoDD24e,
 	CpuType_GekkoDD40,
+	CpuType_UnknownGekko,
 	CpuType_BroadwayDD10,
 	CpuType_BroadwayDD101,
 	CpuType_BroadwayDD12,
@@ -128,23 +145,26 @@ typedef enum {
 	CpuType_BroadwayDD13i,
 	CpuType_BroadwayDD20,
 	CpuType_UnknownBroadway,
-	CpuType_Espresso,
 	CpuType_EspressoEs,
-	CpuType_UnknownGeneric, // TODO: Can we get some 'maybe's for gekko and espresso
+	CpuType_Espresso,
+	CpuType_UnknownEspresso,
+	CpuType_UnknownGeneric,
 	CpuType_Count
 } CpuType;
 
 
 static const char *cpu_type_str_list[CpuType_Count] = {
-	"PowerPC 750L (Lonestar) DD1.0 (or Gekko DD2.0)",
-	"PowerPC 750L (Lonestar) DD2.0",
+	"PowerPC 750 DD1.0 (or Gekko DD2.0)",
+	"PowerPC 750 DD2.0",
 	"PowerPC 750L (Lonestar) DD2.2",
+	"PowerPC 750CX or CXe (PVR 0x%08x - maybe DD%d.%d?)",
 	"Gekko DD1.0 or 2.0",
 	"Gekko DD2.3 (or 2.3b/e)",
 	"Gekko DD2.3a (or 2.3ei)",
 	"Gekko DD2.4",
 	"Gekko DD2.4e",
 	"Gekko DD4.0",
+	"Unknown (PVR 0x%08x - maybe Gekko DD%d.%d?)",
 	"Broadway DD1.0",
 	"Broadway DD1.01",
 	"Broadway DD1.2",
@@ -153,9 +173,10 @@ static const char *cpu_type_str_list[CpuType_Count] = {
 	"Broadway DD1.3i",
 	"Broadway DD2.0 (Broadway-1)",
 	"Unknown (PVR 0x%08x - maybe Broadway DD%d.%d?)",
-	"Espresso",
-	"Espresso (engineering sample)",
-	"Unknown (PVR 0x%08X)"
+	"Espresso (engineering sample - maybe DD2.0?)",
+	"Espresso (tentatively DD2.1)",
+	"Unknown (PVR 0x%08x - maybe Espresso DD%d.%d?)",
+	"Unknown (PVR 0x%08x)"
 };
 
 typedef enum {
@@ -202,13 +223,12 @@ typedef enum {
 	ChipsetType_Count
 } ChipsetType;
 
-// TODO: Maybe-revs for hollywood and latte unknowns?
 static const char *chipset_type_str_list[ChipsetType_Count] = {
 	"Flipper (rev A) (HW1)",
 	"Flipper (rev B) (HW2)",
 	"Flipper (rev C) (HW3)",
-	"Flipper (rev T)", // TODO: HW4??
-	"Flipper (unknown, 0x%08X) (rev %c?)",
+	"Flipper (rev T) (HW4)",
+	"Flipper (unknown, 0x%08x) (rev %c?)",
 	"Hollywood ES1.0",
 	"Hollywood ES1.1",
 	"Hollywood ES1.21",
@@ -216,7 +236,7 @@ static const char *chipset_type_str_list[ChipsetType_Count] = {
 	"Hollywood ES2.1",
 	"Hollywood ES3.0 (Bollywood ES)",
 	"Hollywood ES3.1 (Bollywood)",
-	"Hollywood (unknown, 0x%08X)",
+	"Hollywood (unknown, 0x%08x)",
 	"Latte A11",
 	"Latte A12",
 	"Latte A2X",
@@ -225,12 +245,7 @@ static const char *chipset_type_str_list[ChipsetType_Count] = {
 	"Latte A5X",
 	"Latte B1X",
 	"Latte B1X (late)",
-	"Latte (unknown, 0x%02X)", // TODO: This one is a u8,
-				   // so it gets just one byte
-				   // output.
-				   // Realistically, could the same
-				   // be done for other values?
-				   // Do we need so many u32s?
+	"Latte (unknown, 0x%02x)",
 	"Unknown" // TODO: What can we show here?
 		  // (In other words, is it ok to try to get
 		  // the chipset id value on the wrong platform?
@@ -276,11 +291,8 @@ static const char *drive_type_str_list[DriveType_Count] = {
 	"Unknown (device code 0x%04X)"
 };
 
-struct console { // TODO: can we initialize these as consts
+struct console {
 	// params (raw data)
-	// TODO: can we initialize some of these 
-	// with macros and the compiler knows 
-	// to just fill it out when accessed??
 	bool is_wii;
 	bool is_cafe;
 	bool is_gc;

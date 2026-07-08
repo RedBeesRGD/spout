@@ -23,10 +23,10 @@ struct console c = {0};
 
 u8 get_cpu_type( void ) {
 	switch(c.pvr) {
-		case PVR_LONESTAR_DD1:
-			return CpuType_LonestarDD1;
-		case PVR_LONESTAR_DD20:
-			return CpuType_LonestarDD20;
+		case PVR_750_DD10:
+			return CpuType_750DD10;
+		case PVR_750_DD20:
+			return CpuType_750DD20;
 		case PVR_LONESTAR_DD22:
 			return CpuType_LonestarDD22;
 
@@ -64,10 +64,11 @@ u8 get_cpu_type( void ) {
 			return CpuType_Espresso;
 	
 		default:
+			if((c.pvr & 0xFFFFF000) == PVR_750CX_BASE) return CpuType_750CX;
+			if((c.pvr & 0xFFFFF000) == PVR_GEKKO_BASE) return CpuType_UnknownGekko;
 			if((c.pvr & PVR_BROADWAY_BASE) == 0x87000) return CpuType_UnknownBroadway;
+			if((c.pvr & PVR_ESPRESSO_BASE) == 0x70010) return CpuType_UnknownEspresso;
 			return CpuType_UnknownGeneric;
-			// TODO: Implement guessing for Gekko
-			// and Espresso
 		}
 }
 
@@ -248,8 +249,7 @@ void get_all_console_info( void ) {
 
 	if(c.is_gc) { // TODO: Handle RVL_EMU, BEB
 		      // (base wii, but has flipper)
-		c.flipper_id = ((vu32*)0xcc003000)[11]; // TODO: can this be moved to consoleinfo.h?
-							// Also, what's the actual name of this register?
+		c.flipper_id = PI_REG_CHIPID;
 	}
 
 	if(c.is_wii) { // TODO: Handle RVL_EMU, BEB
@@ -285,7 +285,7 @@ void get_all_console_info( void ) {
 	strcpy(c.cpu_type_str, cpu_type_str_list[c.cpu_type_index]);
 	
 	buf = cpu_type_str_list[c.cpu_type_index];
-	if(c.cpu_type_index == CpuType_UnknownBroadway) {
+	if(c.cpu_type_index == (CpuType_750CX || CpuType_UnknownGekko || CpuType_UnknownBroadway || CpuType_UnknownEspresso)) {
 		sprintf(c.cpu_type_str, buf, c.pvr, ((c.pvr & 0x00000f00) >> 8), (c.pvr & 0x0000000f));
 	}
 	if(c.cpu_type_index == CpuType_UnknownGeneric) {
