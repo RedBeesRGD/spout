@@ -67,7 +67,7 @@ u8 get_cpu_type( void ) {
 			if((c.pvr & 0xFFFFF000) == PVR_750CX_BASE) return CpuType_750CX;
 			if((c.pvr & 0xFFFFF000) == PVR_GEKKO_BASE) return CpuType_UnknownGekko;
 			if((c.pvr & PVR_BROADWAY_BASE) == 0x87000) return CpuType_UnknownBroadway;
-			if((c.pvr & PVR_ESPRESSO_BASE) == 0x70010) return CpuType_UnknownEspresso;
+			if((c.pvr & 0xFFFFF000) == PVR_ESPRESSO_BASE) return CpuType_UnknownEspresso;
 			return CpuType_UnknownGeneric;
 		}
 }
@@ -380,6 +380,7 @@ int main( void ) {
 	printf("\n\nPress any button to exit..");
 	
 	wait_for_pad();
+	printf("\nReturning to loader..");
 	exit(0);
 
 	return 0;
