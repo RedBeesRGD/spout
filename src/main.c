@@ -345,6 +345,7 @@ void libogc_init( void ) {
 
 int main( void ) {
 	libogc_init();
+	CON_EnableGecko(1, true);
 	#ifndef GAMECUBE_BUILD
 	if(!Haxx_GetBusAccess()) {
 		printf("Fatal error: Couldn't get bus access!\n\nPress any button to return to loader");
@@ -352,8 +353,6 @@ int main( void ) {
 		exit(0);
 	}
 	#endif
-
-	CON_EnableGecko(1, true);
 
 	printf("\e[0;36mSpout\e[0;37m");
 	#ifdef GAMECUBE_BUILD
