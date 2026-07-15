@@ -55,8 +55,9 @@
 #define PVR_BROADWAY_DD13i	0x00087113
 #define PVR_BROADWAY_DD20	0x00087200
 
-#define PVR_ESPRESSO_BASE	0x70010000	// WARNING: This and all of the Espresso
-						// revision-guessing code are purely speculative!
+#define PVR_ESPRESSO_BASE	0x70010000
+
+#define PVR_ESPRESSO_DD10 0x70010100 // The single user-mode Cafe OS 1.5 SDK demo binary found on a factory SD card checks for this PVR specifically due to a hardware erratum related to locked cache: "The espresso cpu version 1.0 is not stable for locked cache dma operations."
 #define PVR_ESPRESSO_ES	0x70010200 // This is specifically the one found in that board from GBAtemp.
 #define PVR_ESPRESSO	0x70010201
 
