@@ -58,8 +58,8 @@
 #define PVR_ESPRESSO_BASE	0x70010000
 
 #define PVR_ESPRESSO_DD10 0x70010100 // The single user-mode Cafe OS 1.5 SDK demo binary found on a factory SD card checks for this PVR specifically due to a hardware erratum related to locked cache: "The espresso cpu version 1.0 is not stable for locked cache dma operations."
-#define PVR_ESPRESSO_ES	0x70010200 // This is specifically the one found in that board from GBAtemp.
-#define PVR_ESPRESSO	0x70010201
+#define PVR_ESPRESSO_DD20	0x70010200 // This is specifically the one found in that board from GBAtemp.
+#define PVR_ESPRESSO_DD21	0x70010201
 
 // Chipset types (no Flipper, sorry, you're special)
 
@@ -149,8 +149,9 @@ typedef enum {
 	CpuType_BroadwayDD13i,
 	CpuType_BroadwayDD20,
 	CpuType_UnknownBroadway,
-	CpuType_EspressoEs,
-	CpuType_Espresso,
+	CpuType_EspressoDD10,
+	CpuType_EspressoDD20,
+	CpuType_EspressoDD21,
 	CpuType_UnknownEspresso,
 	CpuType_UnknownGeneric,
 	CpuType_Count
@@ -177,8 +178,9 @@ static const char *cpu_type_str_list[CpuType_Count] = {
 	"Broadway DD1.3i",
 	"Broadway DD2.0 (Broadway-1)",
 	"Unknown (PVR 0x%08x - maybe Broadway DD%d.%d?)",
-	"Espresso (engineering sample - maybe DD2.0?)",
-	"Espresso (tentatively DD2.1)",
+	"Espresso DD1.0",
+	"Espresso DD2.0",
+	"Espresso DD2.1",
 	"Unknown (PVR 0x%08x - maybe Espresso DD%d.%d?)",
 	"Unknown (PVR 0x%08x)"
 };

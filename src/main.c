@@ -58,10 +58,12 @@ u8 get_cpu_type( void ) {
 		case PVR_BROADWAY_DD20:
 			return CpuType_BroadwayDD20;
 		
-		case PVR_ESPRESSO_ES:
-			return CpuType_EspressoEs;
-		case PVR_ESPRESSO:
-			return CpuType_Espresso;
+		case PVR_ESPRESSO_DD10:
+			return CpuType_EspressoDD10;	
+		case PVR_ESPRESSO_DD20:
+			return CpuType_EspressoDD20;
+		case PVR_ESPRESSO_DD21:
+			return CpuType_EspressoDD21;
 	
 		default:
 			if((c.pvr & 0xFFFFF000) == PVR_750CX_BASE) return CpuType_750CX;
